@@ -288,7 +288,7 @@
   </footer>
 
   <script>
-    // Función para manejar la navegación
+    // Función para manejar la navegación a la página principal
     function handleMainPageNavigation() {
       const mainPageUrl = 'https://www.comunidadmjc.com.ar/';
       const windowName = 'MJC_Main_Window';
@@ -355,10 +355,11 @@
                 // Si se detecta una nueva noticia se envía la notificación
                 if (id > latestNewsId) {
                   latestNewsId = id;
+                  console.log(`Enviando notificación para la noticia con id: ${id}`);
                   OneSignal.push(function() {
                     OneSignal.sendSelfNotification({
                       title: "Nuevo Evento en MJC",
-                      body: `Revisa "${titulo}" - el evento del ${fechaDisplay}`,
+                      message: `Revisa "${titulo}" - el evento del ${fechaDisplay}`,
                       url: "https://comunidadmjc.netlify.app/",
                       data: { eventId: id }
                     });
