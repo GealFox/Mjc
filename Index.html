@@ -311,7 +311,7 @@
       }
     }
 
-    // Código para cargar noticias
+    // Variables para detectar nuevas noticias
     let latestNewsId = 0;
 
     async function loadNews() {
@@ -330,8 +330,66 @@
         let count = 0;
         
         rows.forEach(row => {
-          // ... (mantener mismo código de carga de noticias)
+          const id = row.c[0]?.v || 0;
+          const titulo = row.c[1]?.v || "Sin Título";
+          const fechaStr = row.c[2]?.f || "";
+          const urlDrive = row.c[3]?.v || "";
+          
+          if (fechaStr) {
+            const partes = fechaStr.split("-");
+            if (partes.length === 3) {
+              const eventDate = new Date(partes[0], partes[1] - 1, partes[2]);
+              eventDate.setHours(0,0,0,0);
+              const hoy = new Date();
+              hoy.setHours(0,0,0,0);
+              
+              if (eventDate >= hoy) {
+                let urlImagen = "https://via.placeholder.com/300";
+                const match = urlDrive.match(/[-\w]{25,}/);
+                if (match) urlImagen = `https://lh3.googleusercontent.com/d/${match[0]}=s1600`;
+                
+                const dia = eventDate.getDate().toString().padStart(2, '0');
+                const mes = (eventDate.getMonth() + 1).toString().padStart(2, '0');
+                const fechaDisplay = `${dia}/${mes}/${eventDate.getFullYear()}`;
+                
+                if (id > latestNewsId) {
+                  latestNewsId = id;
+                  OneSignalDeferred.push(() => {
+                    OneSignal.Notifications.sendSelfNotification({
+                      title: "Nuevo Evento en MJC",
+                      body: `Revisa "${titulo}" - el evento del ${fechaDisplay}`,
+                      url: "https://comunidadmjc.netlify.app/",
+                      data: { eventId: id }
+                    });
+                  });
+                }
+                
+                const card = document.createElement("div");
+                card.className = "news-card";
+                card.innerHTML = `
+                  <div class="card-title">${titulo}</div>
+                  <img src="${urlImagen}" alt="${titulo}">
+                  <div class="overlay">
+                    <button class="ampliarBtn">Ampliar</button>
+                  </div>
+                  <div class="card-info">
+                    <p>Día: ${fechaDisplay}</p>
+                  </div>
+                `;
+                
+                card.querySelector(".ampliarBtn").addEventListener("click", () => 
+                  abrirModal(urlImagen, titulo, fechaDisplay));
+                card.querySelector("img").addEventListener("click", () => 
+                  abrirModal(urlImagen, titulo, fechaDisplay));
+                
+                container.appendChild(card);
+                count++;
+              }
+            }
+          }
         });
+        
+        if (count === 0) container.innerHTML = "<p>No hay eventos vigentes.</p>";
         
       } catch (error) {
         console.error("Error al cargar las noticias:", error);
@@ -341,17 +399,15 @@
     // Funcionalidad del modal
     function abrirModal(urlImagen, titulo, fechaDisplay) {
       const modal = document.getElementById("modal");
-      const modalImage = document.getElementById("modalImage");
-      const modalInfo = document.getElementById("modalInfo");
-      modalImage.src = urlImagen;
-      modalInfo.textContent = `Día: ${fechaDisplay} - ${titulo}`;
+      document.getElementById("modalImage").src = urlImagen;
+      document.getElementById("modalInfo").textContent = `Día: ${fechaDisplay} - ${titulo}`;
       modal.classList.add("active");
     }
 
-    document.getElementById("modalClose").addEventListener("click", () => {
-      document.getElementById("modal").classList.remove("active");
-    });
-
+    // Event Listeners
+    document.getElementById("modalClose").addEventListener("click", () => 
+      document.getElementById("modal").classList.remove("active"));
+    
     document.getElementById("modal").addEventListener("click", (e) => {
       if (e.target.id === "modal") {
         document.getElementById("modal").classList.remove("active");
@@ -359,8 +415,10 @@
     });
 
     // Inicialización
-    loadNews();
-    setInterval(loadNews, 30000);
+    document.addEventListener('DOMContentLoaded', () => {
+      loadNews();
+      setInterval(loadNews, 30000);
+    });
   </script>
 </body>
 </html>
