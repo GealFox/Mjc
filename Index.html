@@ -48,8 +48,23 @@
   <!-- Fuentes e íconos -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async defer></script>
   
+  <!-- Integración de OneSignal para notificaciones push -->
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "62485058-7374-4bb6-bce4-34f0b06e3925",
+        safari_web_id: "web.onesignal.auto.105cd246-aae6-4c14-8684-2fd8214524d1",
+        notifyButton: {
+          enable: true,
+        },
+      });
+    });
+  </script>
+  
+  <!-- Se han removido los scripts relacionados a otras notificaciones push -->
   <style>
     /* Variables de color */
     :root {
@@ -695,19 +710,6 @@
     // Reiniciar video
     const video = document.querySelector('.video-container video');
     video.addEventListener('ended', () => { video.play(); });
-    // OneSignal
-  src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({
-      appId: "62485058-7374-4bb6-bce4-34f0b06e3925",
-      safari_web_id: "web.onesignal.auto.105cd246-aae6-4c14-8684-2fd8214524d1",
-      notifyButton: {
-        enable: true,
-          }
-        }
-      });
-    });
     // Noticias y Eventos
     let modalEventTitle = "", modalEventDate = "";
     async function loadNews() {
@@ -722,7 +724,8 @@
         const rows = json.table.rows;
         const container = document.getElementById("newsContainer");
         container.innerHTML = "";
-        const hoy = new Date(); hoy.setHours(0,0,0,0); let count = 0;
+        const hoy = new Date(); hoy.setHours(0,0,0,0); 
+        let count = 0;
         rows.forEach(row => {
           const titulo = row.c[1] ? row.c[1].v : "Sin Título";
           const fechaStr = row.c[2] ? row.c[2].f : "";
@@ -760,8 +763,25 @@
             }
           }
         });
-        if (count === 0) { container.innerHTML = "<p>No hay eventos vigentes.</p>"; }
-      } catch (error) { console.error("Error al cargar las noticias:", error); }
+        if (count === 0) { 
+          container.innerHTML = "<p>No hay eventos vigentes.</p>"; 
+        } else {
+          // Si hay nuevas noticias/eventos, se envía una notificación push única por día.
+          let lastNewsNotificationDate = localStorage.getItem("lastNewsNotificationDate");
+          let todayStr = new Date().toISOString().slice(0,10);
+          if (lastNewsNotificationDate !== todayStr && window.OneSignal && window.OneSignal.sendSelfNotification) {
+            window.OneSignal.sendSelfNotification({
+              title: "Nuevas Noticias y Eventos",
+              message: "¡Revisa las últimas noticias y eventos!",
+              url: window.location.href,
+              icon: "https://comunidadmjc.com.ar/logo.png"
+            });
+            localStorage.setItem("lastNewsNotificationDate", todayStr);
+          }
+        }
+      } catch (error) { 
+        console.error("Error al cargar las noticias:", error); 
+      }
     }
     function abrirModal(urlImagen, titulo, fechaDisplay) {
       modalEventTitle = titulo;
