@@ -696,30 +696,19 @@
     const video = document.querySelector('.video-container video');
     video.addEventListener('ended', () => { video.play(); });
     // OneSignal
-    window.OneSignal = window.OneSignal || [];
-    OneSignal.push(function() {
-      OneSignal.init({
-        appId: "62485058-7374-4bb6-bce4-34f0b06e3925",
-        safari_web_id: "web.onesignal.auto.105cd246-aae6-4c14-8684-2fd8214524d1",
-        notifyButton: {
-          enable: true,
-          position: 'bottom-right',
-          theme: 'default',
-          size: 'medium',
-          colors: { 'circle.background': "#f39c12", 'circle.foreground': '#fff' },
-          text: {
-            'tip.state.unsubscribed': 'Suscríbete a las notificaciones',
-            'tip.state.subscribed': 'Estás suscrito a las notificaciones',
-            'tip.state.blocked': 'Has bloqueado las notificaciones',
-            'message.prenotify': 'Haz clic para suscribirte a las notificaciones',
-            'message.action.subscribed': '¡Gracias por suscribirte!',
-            'message.action.resubscribed': 'Estás suscrito a las notificaciones',
-            'message.action.unsubscribed': 'Has cancelado la suscripción a las notificaciones',
-            'dialog.main.title': 'Gestionar notificaciones del sitio',
-            'dialog.main.button.subscribe': 'SUSCRIBIRSE',
-            'dialog.main.button.unsubscribe': 'CANCELAR SUSCRIPCIÓN',
-            'dialog.blocked.title': 'Desbloquear notificaciones',
-            'dialog.blocked.message': 'Sigue estas instrucciones para permitir notificaciones:'
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "62485058-7374-4bb6-bce4-34f0b06e3925",
+      safari_web_id: "web.onesignal.auto.105cd246-aae6-4c14-8684-2fd8214524d1",
+      notifyButton: {
+        enable: true,
+      },
+    });
+  });
+</script>
           }
         }
       });
