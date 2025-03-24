@@ -10,10 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   
-  <!-- OneSignal SDK: usar el SDK estándar en lugar de OneSignalSDK.page.js -->
+  <!-- OneSignal SDK: Cargamos el SDK estándar -->
   <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script>
   <script>
-    // Aseguramos que window.OneSignal esté definido como arreglo
     window.OneSignal = window.OneSignal || [];
     OneSignal.push(function() {
       OneSignal.init({
@@ -23,7 +22,7 @@
         autoRegister: true,
         allowLocalhostAsSecureOrigin: true
       }).then(function() {
-        // Mostrar prompt deslizante tras la inicialización
+        // Mostrar el prompt deslizante al finalizar la inicialización
         OneSignal.showSlidedownPrompt();
       });
     });
@@ -343,22 +342,30 @@
                 const mes = (eventDate.getMonth() + 1).toString().padStart(2, '0');
                 const fechaDisplay = `${dia}/${mes}/${eventDate.getFullYear()}`;
                 
-                // Si se detecta una nueva noticia se envía la notificación
+                // Si se detecta una nueva noticia se intenta enviar la notificación
                 if (id > latestNewsId) {
                   latestNewsId = id;
                   console.log(`Enviando notificación para la noticia con id: ${id}`);
                   OneSignal.push(function() {
-                    OneSignal.sendSelfNotification(
-                      "Nuevo Evento en MJC",                              // Título
-                      `Revisa "${titulo}" - el evento del ${fechaDisplay}`,  // Mensaje
-                      "https://comunidadmjc.netlify.app/",                  // URL al hacer clic
-                      "",                                                  // Icono (puedes especificar uno o dejar vacío)
-                      { eventId: id },                                     // Datos adicionales
-                      []                                                   // Botones (vacío si no se usan)
-                    );
+                    // Verificamos si el usuario está suscripto
+                    OneSignal.isPushNotificationsEnabled().then(function(isEnabled) {
+                      if (isEnabled) {
+                        OneSignal.sendSelfNotification(
+                          "Nuevo Evento en MJC",                              // Título
+                          `Revisa "${titulo}" - el evento del ${fechaDisplay}`,  // Mensaje
+                          "https://comunidadmjc.netlify.app/",                  // URL
+                          "",                                                  // Icono (puedes especificar uno o dejar vacío)
+                          { eventId: id },                                     // Datos adicionales
+                          []                                                   // Botones (vacío si no se usan)
+                        );
+                      } else {
+                        console.log("El usuario no está suscripto, no se envía la notificación.");
+                      }
+                    });
                   });
                 }
                 
+                // Crear tarjeta de noticia
                 const card = document.createElement("div");
                 card.className = "news-card";
                 card.innerHTML = `
