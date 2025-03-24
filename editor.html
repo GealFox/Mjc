@@ -185,7 +185,7 @@
   <!-- OneSignal SDK: Cargamos el SDK estándar -->
   <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script>
   <script>
-    // Inicialización de OneSignal en español, con prompt y redirección por defecto
+    // Inicializamos OneSignal en español, con prompt y redirección
     window.OneSignal = window.OneSignal || [];
     OneSignal.push(function() {
       OneSignal.init({
@@ -224,32 +224,13 @@
       });
     });
     
-    // Función para enviar notificación global usando la API REST de OneSignal
+    // Función para enviar notificación global mediante la función serverless de Netlify
     async function enviarPushGlobal(accion, titulo) {
-      let mensaje = "";
-      if (accion === "create") {
-        mensaje = `¡No te pierdas esta noticia! ${titulo}. Haz clic para ver las novedades.`;
-      } else if (accion === "update") {
-        mensaje = `Se ha actualizado la noticia: ${titulo}. Haz clic para ver las novedades.`;
-      } else if (accion === "delete") {
-        mensaje = `Se eliminó una noticia. Revisa las novedades en comunidad.`;
-      }
-      const body = {
-        app_id: "62485058-7374-4bb6-bce4-34f0b06e3925",
-        included_segments: ["All"],
-        headings: { "es": "Nuevas Noticias en MJC" },
-        contents: { "es": mensaje },
-        url: "https://www.comunidadmjc.com.ar"
-      };
       try {
-        const response = await fetch("https://onesignal.com/api/v1/notifications", {
+        const response = await fetch("https://comunidadmjc.netlify.app/.netlify/functions/sendNotification", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            // API key temporal; recuérdalo cambiar luego y mantenerlo en secreto
-            "Authorization": "Basic yz3inqj5oeyhuevllztpmylts"
-          },
-          body: JSON.stringify(body)
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accion, titulo })
         });
         const result = await response.json();
         console.log("Push global enviado:", result);
@@ -310,13 +291,11 @@
       const imagenFile = document.getElementById("imagen").files[0];
       const entryId = document.getElementById("entryId").value;
       
-      // En creación, es obligatorio subir imagen; en actualización, se puede omitir
       if (!entryId && !imagenFile) {
         mostrarMensaje("Por favor, sube una imagen.", "red");
         return;
       }
       
-      // Crear objeto de datos
       const data = {
         action: entryId ? "update" : "create",
         titulo,
@@ -324,7 +303,6 @@
         entryId
       };
 
-      // Si se seleccionó archivo, lo procesamos y agregamos
       if (imagenFile) {
         const reader = new FileReader();
         reader.readAsDataURL(imagenFile);
