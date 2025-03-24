@@ -10,22 +10,22 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   
-  <!-- OneSignal SDK -->
-  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <!-- OneSignal SDK: usar el SDK estándar en lugar de OneSignalSDK.page.js -->
+  <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script>
   <script>
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    OneSignalDeferred.push(async function(OneSignal) {
-      await OneSignal.init({
+    // Aseguramos que window.OneSignal esté definido como arreglo
+    window.OneSignal = window.OneSignal || [];
+    OneSignal.push(function() {
+      OneSignal.init({
         appId: "62485058-7374-4bb6-bce4-34f0b06e3925",
         safari_web_id: "web.onesignal.auto.105cd246-aae6-4c14-8684-2fd8214524d1",
-        notifyButton: {
-          enable: true,
-        },
+        notifyButton: { enable: true },
         autoRegister: true,
         allowLocalhostAsSecureOrigin: true
+      }).then(function() {
+        // Mostrar prompt deslizante tras la inicialización
+        OneSignal.showSlidedownPrompt();
       });
-      
-      await OneSignal.showSlidedownPrompt();
     });
   </script>
   
@@ -36,7 +36,6 @@
       --white-bg: #ffffff;
       --grey-bg: #f7f7f7;
       --text-color: #333;
-      --overlay-color: rgba(0, 0, 0, 0.6);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; font-size: 62.5%; }
@@ -76,14 +75,8 @@
       font-family: 'Montserrat', sans-serif;
       cursor: pointer;
     }
-    header .logo {
-      font-size: 2.2rem;
-      font-weight: 700;
-    }
-    header .back-home {
-      font-size: 1.8rem;
-      transition: color 0.3s ease;
-    }
+    header .logo { font-size: 2.2rem; font-weight: 700; }
+    header .back-home { font-size: 1.8rem; transition: color 0.3s ease; }
     header .back-home:hover { color: var(--accent-color); }
     
     /* Ajuste para el botón de notificaciones */
@@ -292,10 +285,8 @@
     function handleMainPageNavigation() {
       const mainPageUrl = 'https://www.comunidadmjc.com.ar/';
       const windowName = 'MJC_Main_Window';
-      
       try {
         const mainWindow = window.open(mainPageUrl, windowName);
-        
         if (mainWindow) {
           mainWindow.focus();
           if (window.opener === null && window.history.length === 1) {
@@ -357,12 +348,14 @@
                   latestNewsId = id;
                   console.log(`Enviando notificación para la noticia con id: ${id}`);
                   OneSignal.push(function() {
-                    OneSignal.sendSelfNotification({
-                      title: "Nuevo Evento en MJC",
-                      message: `Revisa "${titulo}" - el evento del ${fechaDisplay}`,
-                      url: "https://comunidadmjc.netlify.app/",
-                      data: { eventId: id }
-                    });
+                    OneSignal.sendSelfNotification(
+                      "Nuevo Evento en MJC",                              // Título
+                      `Revisa "${titulo}" - el evento del ${fechaDisplay}`,  // Mensaje
+                      "https://comunidadmjc.netlify.app/",                  // URL al hacer clic
+                      "",                                                  // Icono (puedes especificar uno o dejar vacío)
+                      { eventId: id },                                     // Datos adicionales
+                      []                                                   // Botones (vacío si no se usan)
+                    );
                   });
                 }
                 
