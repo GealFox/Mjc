@@ -696,8 +696,7 @@
     const video = document.querySelector('.video-container video');
     video.addEventListener('ended', () => { video.play(); });
     // OneSignal
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
+  src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   OneSignalDeferred.push(async function(OneSignal) {
     await OneSignal.init({
