@@ -311,7 +311,7 @@
       }
     }
 
-    // Variables para detectar nuevas noticias
+    // Variable para detectar nuevas noticias
     let latestNewsId = 0;
 
     async function loadNews() {
@@ -352,10 +352,11 @@
                 const mes = (eventDate.getMonth() + 1).toString().padStart(2, '0');
                 const fechaDisplay = `${dia}/${mes}/${eventDate.getFullYear()}`;
                 
+                // Si se detecta una nueva noticia se envía la notificación
                 if (id > latestNewsId) {
                   latestNewsId = id;
-                  OneSignalDeferred.push(() => {
-                    OneSignal.Notifications.sendSelfNotification({
+                  OneSignal.push(function() {
+                    OneSignal.sendSelfNotification({
                       title: "Nuevo Evento en MJC",
                       body: `Revisa "${titulo}" - el evento del ${fechaDisplay}`,
                       url: "https://comunidadmjc.netlify.app/",
@@ -404,7 +405,7 @@
       modal.classList.add("active");
     }
 
-    // Event Listeners
+    // Event Listeners para cerrar el modal
     document.getElementById("modalClose").addEventListener("click", () => 
       document.getElementById("modal").classList.remove("active"));
     
@@ -414,7 +415,7 @@
       }
     });
 
-    // Inicialización
+    // Inicialización: cargar noticias y actualizar cada 30 segundos
     document.addEventListener('DOMContentLoaded', () => {
       loadNews();
       setInterval(loadNews, 30000);
