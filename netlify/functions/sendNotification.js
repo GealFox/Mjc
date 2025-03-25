@@ -1,19 +1,26 @@
+// netlify/functions/sendNotification.js
 const fetch = require("node-fetch");
 
-exports.handler = async function(event, context) {
+exports.handler = async (event, context) => {
+  console.log("sendNotification invocada, event.body:", event.body);
   try {
-    const body = JSON.parse(event.body);
-    const { accion, titulo } = body;
-
+    const { accion, titulo } = JSON.parse(event.body);
+    
     let mensaje = "";
-    if (accion === "create") {
-      mensaje = `¡No te pierdas esta noticia! ${titulo}. Haz clic para ver las novedades.`;
-    } else if (accion === "update") {
-      mensaje = `Se ha actualizado la noticia: ${titulo}. Haz clic para ver las novedades.`;
-    } else if (accion === "delete") {
-      mensaje = `Se eliminó una noticia. Revisa las novedades en comunidad.`;
+    switch (accion) {
+      case "create":
+        mensaje = `¡No te pierdas esta noticia! ${titulo}. Haz clic para ver las novedades.`;
+        break;
+      case "update":
+        mensaje = `Se ha actualizado la noticia: ${titulo}. Haz clic para ver las novedades.`;
+        break;
+      case "delete":
+        mensaje = `Se eliminó una noticia. Revisa las novedades en comunidad.`;
+        break;
+      default:
+        mensaje = `Notificación para: ${titulo}`;
     }
-
+    
     const requestBody = {
       app_id: "62485058-7374-4bb6-bce4-34f0b06e3925",
       included_segments: ["All"],
@@ -21,7 +28,7 @@ exports.handler = async function(event, context) {
       contents: { "es": mensaje },
       url: "https://www.comunidadmjc.com.ar"
     };
-
+    
     const response = await fetch("https://onesignal.com/api/v1/notifications", {
       method: "POST",
       headers: {
@@ -30,12 +37,14 @@ exports.handler = async function(event, context) {
       },
       body: JSON.stringify(requestBody)
     });
-
+    
     const result = await response.json();
+    console.log("Resultado de sendNotification:", result);
     return {
       statusCode: 200,
       body: JSON.stringify(result)
     };
+    
   } catch (error) {
     console.error("Error en sendNotification:", error);
     return {
