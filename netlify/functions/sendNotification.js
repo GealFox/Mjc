@@ -24,8 +24,8 @@ exports.handler = async (event, context) => {
     const requestBody = {
       app_id: "62485058-7374-4bb6-bce4-34f0b06e3925",
       included_segments: ["All"],
-      headings: { "es": "Nuevas Noticias en MJC" },
-      contents: { "es": mensaje },
+      headings: { "en": "Nuevas Noticias en MJC", "es": "Nuevas Noticias en MJC" },
+      contents: { "en": mensaje, "es": mensaje },
       url: "https://www.comunidadmjc.com.ar"
     };
     
@@ -44,7 +44,6 @@ exports.handler = async (event, context) => {
       statusCode: 200,
       body: JSON.stringify(result)
     };
-    
   } catch (error) {
     console.error("Error en sendNotification:", error);
     return {
