@@ -26,7 +26,7 @@ exports.handler = async function(event, context) {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Authorization": "Basic yz3inqj5oeyhuevllztpmylts"
+        "Authorization": "Basic os_v2_app_mjefawdtorf3nphegtyla3rzevyz3inqj5oeyhuevllztpmyltstypbi7y5omcklsgqc6zfpax7zmymikbads7mbt2wqmtwezhqfazy"
       },
       body: JSON.stringify(requestBody)
     });
