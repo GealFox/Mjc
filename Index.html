@@ -13,45 +13,30 @@
   <!-- OneSignal SDK: Cargamos el SDK estándar -->
   <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script>
   <script>
-    // Inicializamos OneSignal con opciones en español
+    // Inicializamos OneSignal de forma única para el sitio
     window.OneSignal = window.OneSignal || [];
     OneSignal.push(function() {
       OneSignal.init({
         appId: "62485058-7374-4bb6-bce4-34f0b06e3925",
         safari_web_id: "web.onesignal.auto.105cd246-aae6-4c14-8684-2fd8214524d1",
         notifyButton: { enable: true },
-        autoRegister: true,
+        // Para evitar que se active automáticamente el proceso de suscripción
+        autoRegister: false,
         allowLocalhostAsSecureOrigin: true,
+        // Notificación de bienvenida en español (opcional)
         welcomeNotification: {
           disable: false,
           title: "¡Bienvenido a MJC!",
           message: "Gracias por suscribirte, ¡mantente al tanto de nuestros eventos!"
         },
+        // Deshabilitamos el prompt deslizante para que solo aparezca la campanita
         promptOptions: {
           slidedown: {
-            prompts: [
-              {
-                type: "push",
-                autoPrompt: true,
-                text: {
-                  actionMessage: "¡Mantente informado! Permítenos enviarte notificaciones sobre nuevos eventos y noticias.",
-                  acceptButton: "Permitir",
-                  cancelButton: "Cancelar"
-                },
-                delay: {
-                  pageViews: 1,
-                  timeDelay: 5
-                }
-              }
-            ]
+            autoPrompt: false
           }
         }
-      }).then(function() {
-        // Configuramos que al hacer clic en notificaciones se redirija a la web principal
-        OneSignal.setDefaultNotificationUrl("https://www.comunidadmjc.com.ar");
-        // Mostrar prompt deslizante (si aún no se ha mostrado)
-        OneSignal.showSlidedownPrompt();
       });
+      // No se invoca OneSignal.showSlidedownPrompt(), de modo que solo se muestra el botón.
     });
   </script>
   
@@ -110,7 +95,7 @@
       bottom: 80px !important;
       right: 20px !important;
     }
-
+    
     /* Mensaje introductorio */
     .intro-message {
       margin-top: 70px;
@@ -121,7 +106,7 @@
       background: var(--grey-bg);
       color: var(--primary-color);
     }
-
+    
     /* Sección Noticias y Eventos */
     #news-events {
       padding: 4rem 2rem 6rem;
@@ -269,17 +254,16 @@
   </style>
 </head>
 <body>
-  <!-- Encabezado -->
   <header>
     <div class="header-container">
-      <div class="logo" onclick="handleMainPageNavigation()">MJC</div>
-      <div class="back-home" onclick="handleMainPageNavigation()">Volver a la Página Principal</div>
+      <div class="logo" onclick="window.location.href='https://www.comunidadmjc.com.ar'">MJC</div>
+      <div class="back-home" onclick="window.location.href='https://www.comunidadmjc.com.ar'">Volver a la Página Principal</div>
     </div>
   </header>
   
-  <!-- Mensaje introductorio -->
   <div class="intro-message">
-    Esta es la sección de Notificaciones del MJC para que estés al día de cada culto y evento.
+    Esta es la página principal de Noticias y Eventos de MJC.<br>
+    Solo se muestra el botón de notificaciones (campanita) para que los usuarios se suscriban.
   </div>
   
   <!-- Sección Noticias y Eventos -->
@@ -290,7 +274,7 @@
     </div>
   </section>
   
-  <!-- Modal -->
+  <!-- Modal para imagen ampliada -->
   <div class="modal" id="modal">
     <button class="close" id="modalClose">Cerrar</button>
     <img id="modalImage" src="" alt="Imagen ampliada">
@@ -305,7 +289,7 @@
       <a href="https://comunidadmjc.com.ar/terminos" target="_blank">Términos de Servicio</a>
     </p>
   </footer>
-
+  
   <script>
     // Función para navegar a la página principal
     function handleMainPageNavigation() {
@@ -327,11 +311,11 @@
         window.location.href = mainPageUrl;
       }
     }
-
-    // Variable para rastrear la última noticia enviada
+    
+    // Variable para rastrear la última noticia (según ID) mostrada
     let latestNewsId = 0;
-
-    // Función para cargar las noticias desde Google Sheets
+    
+    // Función para cargar noticias desde Google Sheets
     async function loadNews() {
       const sheetId = "1YnA2B_6bGT7cVVEm_j0FhFl1MtW_3GsTZo6cXmpc6-s";
       const sheetName = "Noticias";
@@ -356,7 +340,7 @@
           if (fechaStr) {
             const partes = fechaStr.split("-");
             if (partes.length === 3) {
-              const eventDate = new Date(partes[0], partes[1] - 1, partes[2]);
+              const eventDate = new Date(partes[0], partes[1]-1, partes[2]);
               eventDate.setHours(0,0,0,0);
               const hoy = new Date();
               hoy.setHours(0,0,0,0);
@@ -367,23 +351,24 @@
                 if (match) urlImagen = `https://lh3.googleusercontent.com/d/${match[0]}=s1600`;
                 
                 const dia = eventDate.getDate().toString().padStart(2, '0');
-                const mes = (eventDate.getMonth() + 1).toString().padStart(2, '0');
+                const mes = (eventDate.getMonth()+1).toString().padStart(2, '0');
                 const fechaDisplay = `${dia}/${mes}/${eventDate.getFullYear()}`;
                 
-                // Si se detecta una nueva noticia, se envía la notificación (verificando la suscripción)
+                // Si se detecta una nueva noticia, se actualiza latestNewsId y se muestra en consola
                 if (id > latestNewsId) {
                   latestNewsId = id;
                   console.log(`Enviando notificación para la noticia con id: ${id}`);
+                  // En index.html usamos sendSelfNotification solo si el usuario está suscripto
                   OneSignal.push(function() {
                     OneSignal.isPushNotificationsEnabled().then(function(isEnabled) {
                       if (isEnabled) {
                         OneSignal.sendSelfNotification(
-                          "Nuevo Evento en MJC",                              // Título
-                          `Revisa "${titulo}" - el evento del ${fechaDisplay}`,  // Mensaje
-                          "https://www.comunidadmjc.com.ar",                   // URL (redirección)
-                          "",                                                  // Icono (puedes especificar uno si lo deseas)
-                          { eventId: id },                                     // Datos adicionales
-                          []                                                   // Botones (vacío)
+                          "Nuevo Evento en MJC",
+                          `Revisa "${titulo}" - el evento del ${fechaDisplay}`,
+                          "https://www.comunidadmjc.com.ar",
+                          "",
+                          { eventId: id },
+                          []
                         );
                       } else {
                         console.log("El usuario no está suscripto; no se envía notificación.");
@@ -392,7 +377,7 @@
                   });
                 }
                 
-                // Crear la tarjeta de noticia
+                // Crear tarjeta para la noticia
                 const card = document.createElement("div");
                 card.className = "news-card";
                 card.innerHTML = `
@@ -405,45 +390,41 @@
                     <p>Día: ${fechaDisplay}</p>
                   </div>
                 `;
-                
                 card.querySelector(".ampliarBtn").addEventListener("click", () => 
                   abrirModal(urlImagen, titulo, fechaDisplay));
-                card.querySelector("img").addEventListener("click", () => 
+                card.querySelector("img").addEventListener("click", () =>
                   abrirModal(urlImagen, titulo, fechaDisplay));
-                
                 container.appendChild(card);
                 count++;
               }
             }
           }
         });
-        
-        if (count === 0) container.innerHTML = "<p>No hay eventos vigentes.</p>";
-        
+        if (!container.children.length) container.innerHTML = "<p>No hay eventos vigentes.</p>";
       } catch (error) {
         console.error("Error al cargar las noticias:", error);
       }
     }
-
-    // Función para abrir el modal con la imagen ampliada
+    
+    // Función para abrir el modal con imagen ampliada
     function abrirModal(urlImagen, titulo, fechaDisplay) {
       const modal = document.getElementById("modal");
       document.getElementById("modalImage").src = urlImagen;
       document.getElementById("modalInfo").textContent = `Día: ${fechaDisplay} - ${titulo}`;
       modal.classList.add("active");
     }
-
-    // Cerrar el modal
-    document.getElementById("modalClose").addEventListener("click", () => 
-      document.getElementById("modal").classList.remove("active"));
     
+    // Cerrar modal
+    document.getElementById("modalClose").addEventListener("click", () =>
+      document.getElementById("modal").classList.remove("active")
+    );
     document.getElementById("modal").addEventListener("click", (e) => {
       if (e.target.id === "modal") {
         document.getElementById("modal").classList.remove("active");
       }
     });
-
-    // Cargar noticias una vez y luego cada 10 segundos para detectar nuevas
+    
+    // Cargar noticias al iniciar y luego cada 10 segundos para actualizar
     document.addEventListener('DOMContentLoaded', () => {
       loadNews();
       setInterval(loadNews, 10000);
