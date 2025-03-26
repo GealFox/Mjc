@@ -18,7 +18,13 @@
       OneSignal.init({
         appId: "62485058-7374-4bb6-bce4-34f0b06e3925",
         safari_web_id: "web.onesignal.auto.105cd246-aae6-4c14-8684-2fd8214524d1",
-        notifyButton: { enable: true },
+        // Mostrar el botón de notificaciones siempre, incluso si ya está suscripto
+        notifyButton: {
+          enable: true,
+          displayPredicate: function() { return true; }
+        },
+        // Hace que la campanita permanezca visible aunque se suscriba
+        persistNotificationButton: true,
         // Para evitar que se active automáticamente el proceso de suscripción
         autoRegister: false,
         allowLocalhostAsSecureOrigin: true,
@@ -36,7 +42,7 @@
         }
       });
       
-      // Escuchar el cambio de permisos y, si se otorgan, registrar al usuario
+      // Si el usuario acepta los permisos, se llama a registerForPushNotifications()
       OneSignal.on('notificationPermissionChange', function(permissionChange) {
         if (permissionChange.to === 'granted') {
           OneSignal.registerForPushNotifications();
@@ -433,24 +439,10 @@
       }
     });
     
-    // Al cargar el DOM, se cargan las noticias y se configura la suscripción en un solo clic
+    // Cargar noticias al iniciar y luego cada 10 segundos para actualizar
     document.addEventListener('DOMContentLoaded', () => {
       loadNews();
       setInterval(loadNews, 10000);
-      
-      // Configurar el botón de notificaciones para activar la suscripción en un solo clic
-      OneSignal.push(function() {
-        const notificationButton = document.querySelector('#onesignal-bell-container');
-        if (notificationButton) {
-          notificationButton.addEventListener("click", function() {
-            OneSignal.isPushNotificationsEnabled().then(function(isEnabled) {
-              if (!isEnabled) {
-                OneSignal.registerForPushNotifications();
-              }
-            });
-          });
-        }
-      });
     });
   </script>
 </body>
