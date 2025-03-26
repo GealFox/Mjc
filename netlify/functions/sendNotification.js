@@ -1,10 +1,11 @@
 // netlify/functions/sendNotification.js
+
 const fetch = require("node-fetch");
 
 exports.handler = async (event, context) => {
   console.log("sendNotification invocada, event.body:", event.body);
   try {
-    const { accion, titulo } = JSON.parse(event.body);
+    const { accion, titulo, imagenUrl } = JSON.parse(event.body);
     
     let mensaje = "";
     switch (accion) {
@@ -26,14 +27,16 @@ exports.handler = async (event, context) => {
       included_segments: ["All"],
       headings: { "en": "Nuevas Noticias en MJC", "es": "Nuevas Noticias en MJC" },
       contents: { "en": mensaje, "es": mensaje },
-      url: "https://www.comunidadmjc.com.ar"
+      url: "https://www.comunidadmjc.com.ar",
+      // Se usa la URL de la imagen enviada, o se deja vacía si no se proporciona
+      chrome_web_image: imagenUrl || ""
     };
     
     const response = await fetch("https://onesignal.com/api/v1/notifications", {
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8",
-        "Authorization": "Basic os_v2_app_mjefawdtorf3nphegtyla3rzevyz3inqj5oeyhuevllztpmyltstypbi7y5omcklsgqc6zfpax7zmymikbads7mbt2wqmtwezhqfazy"
+        "Authorization": "Basic os_v2_app_mjefawdtorf3nphegtyla3rzewwzpbob3ydu2rvcpwxpe5yi72btaqpr6zkf55xeau67kvcjlykvoco5bbrpqutoiex2clm56b2lxni"
       },
       body: JSON.stringify(requestBody)
     });
@@ -44,6 +47,7 @@ exports.handler = async (event, context) => {
       statusCode: 200,
       body: JSON.stringify(result)
     };
+    
   } catch (error) {
     console.error("Error en sendNotification:", error);
     return {
