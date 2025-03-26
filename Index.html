@@ -13,7 +13,6 @@
   <!-- OneSignal SDK: Cargamos el SDK estándar -->
   <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script>
   <script>
-    // Inicializamos OneSignal de forma única para el sitio
     window.OneSignal = window.OneSignal || [];
     OneSignal.push(function() {
       OneSignal.init({
@@ -36,7 +35,20 @@
           }
         }
       });
-      // No se invoca OneSignal.showSlidedownPrompt(), de modo que solo se muestra el botón.
+      
+      // Escuchar el cambio de permisos y, si se otorgan, registrar al usuario
+      OneSignal.on('notificationPermissionChange', function(permissionChange) {
+        if (permissionChange.to === 'granted') {
+          OneSignal.registerForPushNotifications();
+        }
+      });
+      
+      // Notificar en consola cuando el usuario se suscribe
+      OneSignal.on('subscriptionChange', function(isSubscribed) {
+        if (isSubscribed) {
+          console.log("Usuario suscrito correctamente");
+        }
+      });
     });
   </script>
   
@@ -329,7 +341,6 @@
         const rows = json.table.rows;
         const container = document.getElementById("newsContainer");
         container.innerHTML = "";
-        let count = 0;
         
         rows.forEach(row => {
           const id = row.c[0]?.v || 0;
@@ -354,11 +365,10 @@
                 const mes = (eventDate.getMonth()+1).toString().padStart(2, '0');
                 const fechaDisplay = `${dia}/${mes}/${eventDate.getFullYear()}`;
                 
-                // Si se detecta una nueva noticia, se actualiza latestNewsId y se muestra en consola
+                // Si se detecta una nueva noticia, se envía una notificación (solo si el usuario ya está suscripto)
                 if (id > latestNewsId) {
                   latestNewsId = id;
                   console.log(`Enviando notificación para la noticia con id: ${id}`);
-                  // En index.html usamos sendSelfNotification solo si el usuario está suscripto
                   OneSignal.push(function() {
                     OneSignal.isPushNotificationsEnabled().then(function(isEnabled) {
                       if (isEnabled) {
@@ -395,7 +405,6 @@
                 card.querySelector("img").addEventListener("click", () =>
                   abrirModal(urlImagen, titulo, fechaDisplay));
                 container.appendChild(card);
-                count++;
               }
             }
           }
@@ -424,10 +433,24 @@
       }
     });
     
-    // Cargar noticias al iniciar y luego cada 10 segundos para actualizar
+    // Al cargar el DOM, se cargan las noticias y se configura la suscripción en un solo clic
     document.addEventListener('DOMContentLoaded', () => {
       loadNews();
       setInterval(loadNews, 10000);
+      
+      // Configurar el botón de notificaciones para activar la suscripción en un solo clic
+      OneSignal.push(function() {
+        const notificationButton = document.querySelector('#onesignal-bell-container');
+        if (notificationButton) {
+          notificationButton.addEventListener("click", function() {
+            OneSignal.isPushNotificationsEnabled().then(function(isEnabled) {
+              if (!isEnabled) {
+                OneSignal.registerForPushNotifications();
+              }
+            });
+          });
+        }
+      });
     });
   </script>
 </body>
