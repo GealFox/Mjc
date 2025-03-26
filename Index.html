@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   
-  <!-- OneSignal SDK -->
+  <!-- OneSignal SDK: Cargamos el SDK estándar -->
   <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script>
   
   <style>
@@ -31,7 +31,6 @@
       line-height: 1.6;
       overflow-x: hidden;
       padding-bottom: 80px;
-      position: relative;
     }
     a { text-decoration: none; color: inherit; }
     
@@ -63,58 +62,6 @@
     header .logo { font-size: 2.2rem; font-weight: 700; }
     header .back-home { font-size: 1.8rem; transition: color 0.3s ease; }
     header .back-home:hover { color: var(--accent-color); }
-    
-    /* Botón personalizado (campanita) fijo */
-    #custom-bell {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 60px;
-      height: 60px;
-      background: var(--accent-color);
-      border-radius: 50%;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-      z-index: 2000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-    }
-    #custom-bell:hover { transform: scale(1.1); }
-    #custom-bell i {
-      color: #fff;
-      font-size: 2.5rem;
-    }
-    
-    /* Animación de rebote para la campanita */
-    @keyframes bellBounce {
-      0% { transform: translateY(0); }
-      30% { transform: translateY(-15px); }
-      50% { transform: translateY(0); }
-      70% { transform: translateY(-7px); }
-      100% { transform: translateY(0); }
-    }
-    .bounce {
-      animation: bellBounce 1s ease;
-    }
-    
-    /* Toast message */
-    #toast {
-      position: fixed;
-      bottom: 100px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.8);
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 5px;
-      opacity: 0;
-      transition: opacity 0.5s ease-in-out;
-      z-index: 3000;
-      font-family: 'Montserrat', sans-serif;
-      font-size: 1.4rem;
-    }
     
     /* Mensaje introductorio */
     .intro-message {
@@ -283,7 +230,7 @@
   
   <div class="intro-message">
     Esta es la página principal de Noticias y Eventos de MJC.<br>
-    Usá la campanita para suscribirte o desuscribirte.
+    La campanita de notificaciones se muestra para que puedas suscribirte o desuscribirte.
   </div>
   
   <!-- Sección Noticias y Eventos -->
@@ -310,22 +257,22 @@
     </p>
   </footer>
   
-  <!-- Botón personalizado para notificaciones (campanita) -->
-  <div id="custom-bell">
-    <i class="fas fa-bell"></i>
-  </div>
-  
-  <!-- Elemento para mostrar mensajes de toast -->
-  <div id="toast"></div>
-  
   <script>
-    // Inicialización de OneSignal sin el botón nativo
+    // Inicializamos OneSignal con el botón nativo configurado para mostrarse siempre
     window.OneSignal = window.OneSignal || [];
     OneSignal.push(function() {
       OneSignal.init({
         appId: "62485058-7374-4bb6-bce4-34f0b06e3925",
         safari_web_id: "web.onesignal.auto.105cd246-aae6-4c14-8684-2fd8214524d1",
-        notifyButton: { enable: false },
+        notifyButton: {
+          enable: true,
+          displayPredicate: function() { return true; },
+          size: 'medium',
+          theme: 'default',
+          offset: { bottom: '80px', right: '20px' },
+          text: { tip: "Suscríbete a las notificaciones" }
+        },
+        persistNotificationButton: true,
         autoRegister: false,
         allowLocalhostAsSecureOrigin: true,
         welcomeNotification: {
@@ -333,64 +280,25 @@
           title: "¡Bienvenido a MJC!",
           message: "Gracias por suscribirte, ¡mantente al tanto de nuestros eventos!"
         },
-        promptOptions: { slidedown: { autoPrompt: false } }
+        promptOptions: {
+          slidedown: { autoPrompt: false }
+        }
       });
       
-      // Si se concede el permiso, se registra automáticamente
+      // Si el usuario otorga el permiso, se registra automáticamente sin necesidad de un segundo clic
       OneSignal.on('notificationPermissionChange', function(permissionChange) {
         if (permissionChange.to === 'granted') {
           OneSignal.registerForPushNotifications();
         }
       });
       
-      // Mostrar toast y animar la campanita al cambiar la suscripción
+      // Registro de cambios en la suscripción (para depuración)
       OneSignal.on('subscriptionChange', function(isSubscribed) {
-        console.log("Subscription status changed:", isSubscribed);
-        if (isSubscribed) {
-          showToast("¡Gracias por suscribirte!");
-          animateBell();
-        } else {
-          showToast("Te has desuscrito.");
-        }
+        console.log("Estado de suscripción cambiado:", isSubscribed);
       });
     });
     
-    // Función para alternar la suscripción usando el botón personalizado
-    function toggleSubscription() {
-      OneSignal.isPushNotificationsEnabled().then(function(isEnabled) {
-        if (!isEnabled) {
-          OneSignal.registerForPushNotifications();
-        } else {
-          if (confirm("¿Deseas desuscribirte de las notificaciones?")) {
-            OneSignal.setSubscription(false);
-          }
-        }
-      });
-    }
-    
-    // Función para animar la campanita (efecto bounce)
-    function animateBell() {
-      var bell = document.getElementById("custom-bell");
-      bell.classList.add("bounce");
-      setTimeout(function() {
-        bell.classList.remove("bounce");
-      }, 1000);
-    }
-    
-    // Función para mostrar mensajes de toast
-    function showToast(message) {
-      var toast = document.getElementById("toast");
-      toast.textContent = message;
-      toast.style.opacity = 1;
-      setTimeout(function() {
-        toast.style.opacity = 0;
-      }, 2500);
-    }
-    
-    // Asignar evento de clic al botón personalizado
-    document.getElementById("custom-bell").addEventListener("click", toggleSubscription);
-    
-    // Función para cargar noticias desde Google Sheets (igual que en versiones anteriores)
+    // Función para cargar noticias desde Google Sheets
     let latestNewsId = 0;
     async function loadNews() {
       const sheetId = "1YnA2B_6bGT7cVVEm_j0FhFl1MtW_3GsTZo6cXmpc6-s";
