@@ -382,7 +382,7 @@
         }
       });
       
-      // Actualizar apariencia y mostrar toast según cambio de suscripción
+      // Actualizar apariencia y recargar la página al cambiar la suscripción
       OneSignal.on('subscriptionChange', function(isSubscribed) {
         console.log("Subscription status changed:", isSubscribed);
         var bell = document.getElementById("custom-bell");
@@ -390,9 +390,23 @@
           bell.classList.add("subscribed");
           showToast("¡Gracias por suscribirte!");
           animateBell();
+          // Recargar la página para asegurar el correcto funcionamiento
+          setTimeout(function() {
+            location.reload();
+          }, 2000);
         } else {
           bell.classList.remove("subscribed");
           showToast("Ya estás desuscrito, te esperamos cuando quieras.");
+        }
+      });
+      
+      // Verificar estado de suscripción al cargar la página y actualizar botón
+      OneSignal.isPushNotificationsEnabled().then(function(isEnabled) {
+        var bell = document.getElementById("custom-bell");
+        if (isEnabled) {
+          bell.classList.add("subscribed");
+        } else {
+          bell.classList.remove("subscribed");
         }
       });
     });
