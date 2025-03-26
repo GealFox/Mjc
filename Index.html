@@ -196,7 +196,11 @@
       justify-content: center;
       align-items: center;
       cursor: pointer;
-      transition: transform 0.3s ease;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    /* Clase que indica que ya está suscrito: botón más opaco */
+    #custom-bell.subscribed {
+      opacity: 0.6;
     }
     #custom-bell:hover { transform: scale(1.1); }
     #custom-bell i {
@@ -378,14 +382,17 @@
         }
       });
       
-      // Mostrar toast y animar la campanita al cambiar la suscripción
+      // Actualizar apariencia y mostrar toast según cambio de suscripción
       OneSignal.on('subscriptionChange', function(isSubscribed) {
         console.log("Subscription status changed:", isSubscribed);
+        var bell = document.getElementById("custom-bell");
         if (isSubscribed) {
+          bell.classList.add("subscribed");
           showToast("¡Gracias por suscribirte!");
           animateBell();
         } else {
-          showToast("Te has desuscrito.");
+          bell.classList.remove("subscribed");
+          showToast("Ya estás desuscrito, te esperamos cuando quieras.");
         }
       });
     });
@@ -396,7 +403,7 @@
         if (!isEnabled) {
           OneSignal.registerForPushNotifications();
         } else {
-          if (confirm("¿Deseas desuscribirte de las notificaciones?")) {
+          if (confirm("¿Te quieres desuscribir?")) {
             OneSignal.setSubscription(false);
           }
         }
