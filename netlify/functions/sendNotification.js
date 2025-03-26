@@ -23,14 +23,13 @@ exports.handler = async (event, context) => {
     }
 
     const requestBody = {
-      app_id: "62485058-7374-4bb6-bce4-34f0b06e3925",
-      included_segments: ["All"],
-      headings: { "en": "Nuevas Noticias en MJC", "es": "Nuevas Noticias en MJC" },
-      contents: { "en": mensaje, "es": mensaje },
-      url: "https://www.comunidadmjc.com.ar",
-      // Se asigna la URL de la imagen si se envió, o se deja vacía
-      chrome_web_image: imagenUrl || ""
-    };
+  app_id: "62485058-7374-4bb6-bce4-34f0b06e3925",
+  included_segments: ["All"],
+  headings: { "en": "Nuevas Noticias en MJC", "es": "Nuevas Noticias en MJC" },
+  contents: { "en": mensaje, "es": mensaje },
+  url: "https://www.comunidadmjc.com.ar/#news-events",
+  chrome_web_image: imagenUrl || ""
+};
 
     const response = await fetch("https://onesignal.com/api/v1/notifications", {
       method: "POST",
