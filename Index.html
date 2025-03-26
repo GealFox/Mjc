@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Noticias y Eventos - MJC</title>
-  <meta name="description" content="Esta es la sección de Notificaciones del MJC para que estés al día de cada culto y evento.">
+  <meta name="description" content="Mantente al día con las notificaciones de MJC para cada culto y evento.">
   
   <!-- Fuentes e íconos -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
@@ -64,75 +64,28 @@
     header .back-home { font-size: 1.8rem; transition: color 0.3s ease; }
     header .back-home:hover { color: var(--accent-color); }
     
-    /* Botón personalizado (campanita) fijo */
-    #custom-bell {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      width: 60px;
-      height: 60px;
-      background: var(--accent-color);
-      border-radius: 50%;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-      z-index: 2000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-    }
-    #custom-bell:hover { transform: scale(1.1); }
-    #custom-bell i {
-      color: #fff;
-      font-size: 2.5rem;
-    }
-    
-    /* Reposicionar el botón en móviles */
-    @media (max-width: 768px) {
-      #custom-bell {
-        bottom: 120px; /* Se mueve hacia arriba para quedar sobre el footer */
-        right: 20px;
-      }
-    }
-    
-    /* Animación de rebote para la campanita */
-    @keyframes bellBounce {
-      0% { transform: translateY(0); }
-      30% { transform: translateY(-15px); }
-      50% { transform: translateY(0); }
-      70% { transform: translateY(-7px); }
-      100% { transform: translateY(0); }
-    }
-    .bounce {
-      animation: bellBounce 1s ease;
-    }
-    
-    /* Toast message */
-    #toast {
-      position: fixed;
-      bottom: 100px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.8);
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 5px;
-      opacity: 0;
-      transition: opacity 0.5s ease-in-out;
-      z-index: 3000;
-      font-family: 'Montserrat', sans-serif;
-      font-size: 1.4rem;
-    }
-    
     /* Mensaje introductorio */
     .intro-message {
-      margin-top: 70px;
-      text-align: center;
-      padding: 1rem;
-      font-family: 'Montserrat', sans-serif;
-      font-size: 1.8rem;
+      margin-top: 80px;
+      margin-bottom: 40px;
+      padding: 20px;
       background: var(--grey-bg);
+      border-radius: 10px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .intro-message h2 {
+      font-size: 2.4rem;
+      margin-bottom: 10px;
       color: var(--primary-color);
+    }
+    .intro-message p {
+      font-size: 1.6rem;
+      margin-bottom: 10px;
+      color: var(--text-color);
     }
     
     /* Sección Noticias y Eventos */
@@ -223,6 +176,66 @@
     }
     #news-events .card-info p { font-size: 2.5rem; margin-top: 3px; }
     
+    /* Botón personalizado (campanita) fijo */
+    #custom-bell {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      background: var(--accent-color);
+      border-radius: 50%;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      z-index: 2000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+    #custom-bell:hover { transform: scale(1.1); }
+    #custom-bell i {
+      color: #fff;
+      font-size: 2.5rem;
+    }
+    
+    /* Reposicionar el botón en móviles */
+    @media (max-width: 768px) {
+      #custom-bell {
+        bottom: 120px;
+        right: 20px;
+      }
+    }
+    
+    /* Animación de rebote para la campanita */
+    @keyframes bellBounce {
+      0% { transform: translateY(0); }
+      30% { transform: translateY(-15px); }
+      50% { transform: translateY(0); }
+      70% { transform: translateY(-7px); }
+      100% { transform: translateY(0); }
+    }
+    .bounce {
+      animation: bellBounce 1s ease;
+    }
+    
+    /* Toast message */
+    #toast {
+      position: fixed;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 5px;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+      z-index: 3000;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.4rem;
+    }
+    
     /* Modal */
     .modal {
       position: fixed;
@@ -289,9 +302,18 @@
     </div>
   </header>
   
+  <!-- Mensaje explicativo y bonito sobre cómo suscribirse -->
   <div class="intro-message">
-    Esta es la página principal de Noticias y Eventos de MJC.<br>
-    Usá la campanita para suscribirte o desuscribirte.
+    <h2>¡Bienvenido a las Notificaciones de MJC!</h2>
+    <p>
+      Para estar al tanto de cada culto y evento, simplemente toca la campanita que aparece en la esquina.
+    </p>
+    <p>
+      <strong>En dispositivos móviles:</strong> si notas que la campanita requiere un segundo toque, recuerda que una vez que aceptes el permiso, la suscripción se activará automáticamente. ¡No te preocupes, solo toca una vez y espera unos segundos!
+    </p>
+    <p>
+      ¡Gracias por confiar en nosotros!
+    </p>
   </div>
   
   <!-- Sección Noticias y Eventos -->
@@ -398,7 +420,7 @@
     // Asignar evento de clic al botón personalizado
     document.getElementById("custom-bell").addEventListener("click", toggleSubscription);
     
-    // Función para cargar noticias desde Google Sheets (igual que en versiones anteriores)
+    // Función para cargar noticias desde Google Sheets
     let latestNewsId = 0;
     async function loadNews() {
       const sheetId = "1YnA2B_6bGT7cVVEm_j0FhFl1MtW_3GsTZo6cXmpc6-s";
