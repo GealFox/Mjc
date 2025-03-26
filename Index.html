@@ -12,51 +12,6 @@
   
   <!-- OneSignal SDK: Cargamos el SDK estándar -->
   <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script>
-  <script>
-    window.OneSignal = window.OneSignal || [];
-    OneSignal.push(function() {
-      OneSignal.init({
-        appId: "62485058-7374-4bb6-bce4-34f0b06e3925",
-        safari_web_id: "web.onesignal.auto.105cd246-aae6-4c14-8684-2fd8214524d1",
-        // Mostrar el botón de notificaciones siempre, incluso si ya está suscripto
-        notifyButton: {
-          enable: true,
-          displayPredicate: function() { return true; }
-        },
-        // Hace que la campanita permanezca visible aunque se suscriba
-        persistNotificationButton: true,
-        // Para evitar que se active automáticamente el proceso de suscripción
-        autoRegister: false,
-        allowLocalhostAsSecureOrigin: true,
-        // Notificación de bienvenida en español (opcional)
-        welcomeNotification: {
-          disable: false,
-          title: "¡Bienvenido a MJC!",
-          message: "Gracias por suscribirte, ¡mantente al tanto de nuestros eventos!"
-        },
-        // Deshabilitamos el prompt deslizante para que solo aparezca la campanita
-        promptOptions: {
-          slidedown: {
-            autoPrompt: false
-          }
-        }
-      });
-      
-      // Si el usuario acepta los permisos, se llama a registerForPushNotifications()
-      OneSignal.on('notificationPermissionChange', function(permissionChange) {
-        if (permissionChange.to === 'granted') {
-          OneSignal.registerForPushNotifications();
-        }
-      });
-      
-      // Notificar en consola cuando el usuario se suscribe
-      OneSignal.on('subscriptionChange', function(isSubscribed) {
-        if (isSubscribed) {
-          console.log("Usuario suscrito correctamente");
-        }
-      });
-    });
-  </script>
   
   <style>
     :root {
@@ -76,6 +31,7 @@
       line-height: 1.6;
       overflow-x: hidden;
       padding-bottom: 80px;
+      position: relative;
     }
     a { text-decoration: none; color: inherit; }
     
@@ -108,10 +64,25 @@
     header .back-home { font-size: 1.8rem; transition: color 0.3s ease; }
     header .back-home:hover { color: var(--accent-color); }
     
-    /* Ajuste para el botón de notificaciones */
-    #onesignal-bell-container {
-      bottom: 80px !important;
-      right: 20px !important;
+    /* Botón personalizado (campanita) fijo en la esquina inferior derecha */
+    #custom-bell {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      background: var(--accent-color);
+      border-radius: 50%;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      z-index: 2000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+    }
+    #custom-bell i {
+      color: #fff;
+      font-size: 2.5rem;
     }
     
     /* Mensaje introductorio */
@@ -281,7 +252,7 @@
   
   <div class="intro-message">
     Esta es la página principal de Noticias y Eventos de MJC.<br>
-    Solo se muestra el botón de notificaciones (campanita) para que los usuarios se suscriban.
+    Utilizá la campanita para suscribirte o desuscribirte.
   </div>
   
   <!-- Sección Noticias y Eventos -->
@@ -308,32 +279,64 @@
     </p>
   </footer>
   
+  <!-- Botón personalizado para notificaciones (campanita) -->
+  <div id="custom-bell">
+    <i class="fas fa-bell"></i>
+  </div>
+  
   <script>
-    // Función para navegar a la página principal
-    function handleMainPageNavigation() {
-      const mainPageUrl = 'https://www.comunidadmjc.com.ar/';
-      const windowName = 'MJC_Main_Window';
-      try {
-        const mainWindow = window.open(mainPageUrl, windowName);
-        if (mainWindow) {
-          mainWindow.focus();
-          if (window.opener === null && window.history.length === 1) {
-            window.close();
-          } else {
-            window.location.href = mainPageUrl;
-          }
-        } else {
-          window.location.href = mainPageUrl;
+    // Inicialización de OneSignal sin mostrar el botón nativo
+    window.OneSignal = window.OneSignal || [];
+    OneSignal.push(function() {
+      OneSignal.init({
+        appId: "62485058-7374-4bb6-bce4-34f0b06e3925",
+        safari_web_id: "web.onesignal.auto.105cd246-aae6-4c14-8684-2fd8214524d1",
+        notifyButton: { enable: false },
+        autoRegister: false,
+        allowLocalhostAsSecureOrigin: true,
+        welcomeNotification: {
+          disable: false,
+          title: "¡Bienvenido a MJC!",
+          message: "Gracias por suscribirte, ¡mantente al tanto de nuestros eventos!"
+        },
+        promptOptions: {
+          slidedown: { autoPrompt: false }
         }
-      } catch (e) {
-        window.location.href = mainPageUrl;
-      }
+      });
+      
+      // Si el usuario acepta el permiso, se registra automáticamente
+      OneSignal.on('notificationPermissionChange', function(permissionChange) {
+        if (permissionChange.to === 'granted') {
+          OneSignal.registerForPushNotifications();
+        }
+      });
+      
+      // Confirmación en consola al suscribirse o desuscribirse
+      OneSignal.on('subscriptionChange', function(isSubscribed) {
+        console.log("Subscription status changed. Is subscribed? ", isSubscribed);
+      });
+    });
+    
+    // Función para alternar suscripción al tocar la campanita personalizada
+    function toggleSubscription() {
+      OneSignal.isPushNotificationsEnabled().then(function(isEnabled) {
+        if (!isEnabled) {
+          // Si no está suscripto, se solicita la suscripción (esto activará el prompt de permiso y, en caso de aceptar, se registrará automáticamente)
+          OneSignal.registerForPushNotifications();
+        } else {
+          // Si ya está suscripto, se puede ofrecer la opción de desuscribirse
+          if (confirm("¿Deseas desuscribirte de las notificaciones?")) {
+            OneSignal.setSubscription(false);
+          }
+        }
+      });
     }
     
-    // Variable para rastrear la última noticia (según ID) mostrada
-    let latestNewsId = 0;
+    // Asignar el evento de clic al botón personalizado
+    document.getElementById("custom-bell").addEventListener("click", toggleSubscription);
     
-    // Función para cargar noticias desde Google Sheets
+    // Función para cargar noticias desde Google Sheets (como en versiones anteriores)
+    let latestNewsId = 0;
     async function loadNews() {
       const sheetId = "1YnA2B_6bGT7cVVEm_j0FhFl1MtW_3GsTZo6cXmpc6-s";
       const sheetName = "Noticias";
@@ -371,7 +374,6 @@
                 const mes = (eventDate.getMonth()+1).toString().padStart(2, '0');
                 const fechaDisplay = `${dia}/${mes}/${eventDate.getFullYear()}`;
                 
-                // Si se detecta una nueva noticia, se envía una notificación (solo si el usuario ya está suscripto)
                 if (id > latestNewsId) {
                   latestNewsId = id;
                   console.log(`Enviando notificación para la noticia con id: ${id}`);
@@ -393,7 +395,6 @@
                   });
                 }
                 
-                // Crear tarjeta para la noticia
                 const card = document.createElement("div");
                 card.className = "news-card";
                 card.innerHTML = `
@@ -421,7 +422,6 @@
       }
     }
     
-    // Función para abrir el modal con imagen ampliada
     function abrirModal(urlImagen, titulo, fechaDisplay) {
       const modal = document.getElementById("modal");
       document.getElementById("modalImage").src = urlImagen;
@@ -429,7 +429,6 @@
       modal.classList.add("active");
     }
     
-    // Cerrar modal
     document.getElementById("modalClose").addEventListener("click", () =>
       document.getElementById("modal").classList.remove("active")
     );
@@ -439,7 +438,6 @@
       }
     });
     
-    // Cargar noticias al iniciar y luego cada 10 segundos para actualizar
     document.addEventListener('DOMContentLoaded', () => {
       loadNews();
       setInterval(loadNews, 10000);
