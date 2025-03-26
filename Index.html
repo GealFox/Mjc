@@ -87,6 +87,14 @@
       font-size: 2.5rem;
     }
     
+    /* Reposicionar el botón en móviles */
+    @media (max-width: 768px) {
+      #custom-bell {
+        bottom: 120px; /* Se mueve hacia arriba para quedar sobre el footer */
+        right: 20px;
+      }
+    }
+    
     /* Animación de rebote para la campanita */
     @keyframes bellBounce {
       0% { transform: translateY(0); }
