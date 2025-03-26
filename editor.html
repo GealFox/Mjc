@@ -13,13 +13,13 @@
   <!-- OneSignal SDK: Cargamos el SDK estándar -->
   <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script>
   <script>
-    // Inicialización de OneSignal en el editor
+    // Inicializamos OneSignal en el editor
     window.OneSignal = window.OneSignal || [];
     OneSignal.push(function() {
       OneSignal.init({
         appId: "62485058-7374-4bb6-bce4-34f0b06e3925",
         safari_web_id: "web.onesignal.auto.105cd246-aae6-4c14-8684-2fd8214524d1",
-        // En el editor no mostramos el botón
+        // En el editor, no mostramos el botón
         notifyButton: { enable: false },
         autoRegister: true,
         allowLocalhostAsSecureOrigin: true,
@@ -54,7 +54,7 @@
     h1 {
       font-family: 'Montserrat', sans-serif;
       text-align: center;
-      color: #fff;  /* Texto en blanco */
+      color: #fff;
       background: #222;
       padding: 10px 20px;
       border-radius: var(--border-radius);
@@ -232,9 +232,6 @@
   </style>
 </head>
 <body>
-  <!-- Encabezado simulado para mantener la estética -->
-  <!-- Ajusta o quita si no lo necesitas en el editor -->
-  
   <h1>Editor de Noticias</h1>
   
   <!-- Formulario de creación/edición -->
@@ -263,52 +260,13 @@
     <div class="news-container" id="historialContainer"></div>
   </section>
 
-  <!-- Modal para ver imagen ampliada -->
+  <!-- Modal para ver imagen ampliada en el historial -->
   <div class="modal" id="modal">
     <button class="close" id="modalClose">Cerrar</button>
     <img id="modalImage" src="" alt="Imagen ampliada">
     <div class="info" id="modalInfo"></div>
   </div>
   
-  <!-- Función para enviar notificación global (API REST de OneSignal) -->
-  <script>
-    async function enviarPushGlobal(accion, titulo, imagenUrl) {
-      let mensaje = "";
-      if (accion === "create") {
-        mensaje = `¡No te pierdas esta noticia! ${titulo}. Haz clic para ver las novedades.`;
-      } else if (accion === "update") {
-        mensaje = `Se ha actualizado la noticia: ${titulo}. Haz clic para ver las novedades.`;
-      } else if (accion === "delete") {
-        mensaje = `Se eliminó una noticia. Revisa las novedades en comunidad.`;
-      }
-      const requestBody = {
-        app_id: "62485058-7374-4bb6-bce4-34f0b06e3925",
-        included_segments: ["All"],
-        headings: { "en": "Nuevas Noticias en MJC", "es": "Nuevas Noticias en MJC" },
-        contents: { "en": mensaje, "es": mensaje },
-        url: "https://www.comunidadmjc.com.ar/#news-events", // Redirige a la sección de noticias
-        chrome_web_image: imagenUrl || ""
-      };
-      
-      try {
-        const response = await fetch("https://onesignal.com/api/v1/notifications", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            // REST API Key de OneSignal
-            "Authorization": "Basic yz3inqj5oeyhuevllztpmylts"
-          },
-          body: JSON.stringify(requestBody)
-        });
-        const result = await response.json();
-        console.log("Push global enviado:", result);
-      } catch (err) {
-        console.error("Error enviando push global:", err);
-      }
-    }
-  </script>
-  
-  <!-- Lógica para guardar y editar la noticia, y extraer la URL de la imagen del JSON -->
   <script>
     const apiUrl = "https://script.google.com/macros/s/AKfycbyhU0K0CoDYcrUKMtX317m8x1GcL7KTUHBpeLnBk03O3XTmwdiOFEQ4AgJY_ABamz_pRg/exec";
     const sheetId = "1YnA2B_6bGT7cVVEm_j0FhFl1MtW_3GsTZo6cXmpc6-s";
@@ -320,20 +278,46 @@
       div.style.color = color;
       setTimeout(() => { div.textContent = ""; }, 3000);
     }
-    
-    // Obtiene la URL pública de la imagen para la notificación
+
+    // Llama a tu función serverless en Netlify, no directo a OneSignal
+    async function enviarPushGlobal(accion, titulo, imagenUrl) {
+      try {
+        // Ajusta la URL a la ruta de tu función en Netlify
+        // Por ejemplo, si tu sitio es comunidadmjc.netlify.app:
+        const netlifyFunctionUrl = "https://comunidadmjc.netlify.app/.netlify/functions/sendNotification";
+
+        const response = await fetch(netlifyFunctionUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accion, titulo, imagenUrl })
+        });
+        const result = await response.json();
+        console.log("Push global enviado (serverless):", result);
+      } catch (err) {
+        console.error("Error enviando push global (serverless):", err);
+      }
+    }
+
+    // Espera unos segundos, busca la noticia en el JSON, obtiene la URL y la pasa a enviarPushGlobal
+    async function programarNotificacion(accion, titulo) {
+      setTimeout(async () => {
+        const imagenUrl = await obtenerImagenNotificacion(titulo);
+        enviarPushGlobal(accion, titulo, imagenUrl);
+      }, 3000); // Ajusta si necesitas más o menos tiempo
+    }
+
+    // Busca la URL de imagen en el JSON de Google Sheets
     async function obtenerImagenNotificacion(tituloBuscado) {
       try {
-        const response = await fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&tq&sheet=${sheetName}`);
+        const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&tq&sheet=${sheetName}`;
+        const response = await fetch(url);
         const text = await response.text();
         const json = JSON.parse(text.match(/{.*}/)[0]);
-        let imagenUrl = "";
         
+        let imagenUrl = "";
         json.table.rows.forEach(row => {
           const [id, titulo, fechaStr, urlDrive] = row.c;
-          // Buscamos la noticia con el mismo título
           if (titulo && titulo.v === tituloBuscado) {
-            // Sacamos el ID de la imagen y formamos la URL
             if (urlDrive && urlDrive.v) {
               const match = urlDrive.v.match(/[-\w]{25,}/);
               if (match) {
@@ -344,11 +328,12 @@
         });
         return imagenUrl;
       } catch (error) {
-        console.error("Error obteniendo imagen:", error);
+        console.error("Error obteniendo imagen de notificación:", error);
         return "";
       }
     }
-    
+
+    // Envía/edita noticia en Google Sheets y luego programa la notificación
     document.getElementById("newsForm").addEventListener("submit", async function(event) {
       event.preventDefault();
       const titulo = document.getElementById("titulo").value;
@@ -356,7 +341,6 @@
       const imagenFile = document.getElementById("imagen").files[0];
       const entryId = document.getElementById("entryId").value;
       
-      // En creación, se requiere una imagen (archivo)
       if (!entryId && !imagenFile) {
         mostrarMensaje("Por favor, sube una imagen.", "red");
         return;
@@ -369,7 +353,6 @@
         entryId
       };
       
-      // Procesar la imagen si se seleccionó
       if (imagenFile) {
         const reader = new FileReader();
         reader.readAsDataURL(imagenFile);
@@ -389,13 +372,7 @@
         const result = await response.json();
         if (result.status === "success") {
           mostrarMensaje(entryId ? "Noticia actualizada" : "Noticia creada");
-          
-          // Esperamos unos segundos para que la hoja se actualice, luego extraemos la URL pública
-          setTimeout(async () => {
-            const imagenNotificacion = await obtenerImagenNotificacion(titulo);
-            enviarPushGlobal(entryId ? "update" : "create", titulo, imagenNotificacion);
-          }, 3000); // Ajusta si necesitas más/menos tiempo
-          
+          programarNotificacion(entryId ? "update" : "create", titulo);
           document.getElementById("newsForm").reset();
           document.getElementById("entryId").value = "";
           cargarHistorial();
@@ -408,11 +385,14 @@
       }
     });
     
+    // Carga el historial de publicaciones desde Google Sheets
     async function cargarHistorial() {
       try {
-        const response = await fetch(`https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&tq&sheet=${sheetName}`);
+        const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&tq&sheet=${sheetName}`;
+        const response = await fetch(url);
         const text = await response.text();
         const json = JSON.parse(text.match(/{.*}/)[0]);
+        
         const container = document.getElementById("historialContainer");
         container.innerHTML = "";
         const hoy = new Date().setHours(0,0,0,0);
